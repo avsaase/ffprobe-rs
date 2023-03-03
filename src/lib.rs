@@ -50,6 +50,10 @@ pub fn ffprobe_config(
         "json",
     ]);
 
+    // Supress console window on Windows
+    #[cfg(target_os = "windows")]
+    std::os::windows::process::CommandExt::creation_flags(&mut cmd, 0x08000000);
+
     if config.count_frames {
         cmd.arg("-count_frames");
     }
