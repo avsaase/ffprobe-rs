@@ -18,27 +18,15 @@
 //! }
 //! ```
 
-/// Execute ffprobe with default settings and return the extracted data.
-///
-/// See [`ffprobe_config`] if you need to customize settings.
-pub fn ffprobe(path: impl AsRef<std::path::Path>) -> Result<FfProbe, FfProbeError> {
-    ffprobe_config(
-        Config {
-            count_frames: false,
-        },
-        path,
-    )
-}
-
 /// Run ffprobe with a custom config.
 /// See [`ConfigBuilder`] for more details.
-pub fn ffprobe_config(
-    config: Config,
-    path: impl AsRef<std::path::Path>,
+pub fn ffprobe(
+    file_path: impl AsRef<std::path::Path>,
+    ffprobe_path: std::path::PathBuf,
 ) -> Result<FfProbe, FfProbeError> {
-    let path = path.as_ref();
+    let path = file_path.as_ref();
 
-    let mut cmd = std::process::Command::new("ffprobe");
+    let mut cmd = std::process::Command::new(ffprobe_path);
 
     // Default args.
     cmd.args([
@@ -54,10 +42,6 @@ pub fn ffprobe_config(
     #[cfg(target_os = "windows")]
     std::os::windows::process::CommandExt::creation_flags(&mut cmd, 0x08000000);
 
-    if config.count_frames {
-        cmd.arg("-count_frames");
-    }
-
     cmd.arg(path);
 
     let out = cmd.output().map_err(FfProbeError::Io)?;
@@ -72,56 +56,56 @@ pub fn ffprobe_config(
 /// ffprobe configuration.
 ///
 /// Use [`Config::builder`] for constructing a new config.
-#[derive(Clone, Debug)]
-pub struct Config {
-    count_frames: bool,
-}
+// #[derive(Clone, Debug)]
+// pub struct Config {
+//     count_frames: bool,
+// }
 
-impl Config {
-    /// Construct a new ConfigBuilder.
-    pub fn builder() -> ConfigBuilder {
-        ConfigBuilder::new()
-    }
-}
+// impl Config {
+//     /// Construct a new ConfigBuilder.
+//     pub fn builder() -> ConfigBuilder {
+//         ConfigBuilder::new()
+//     }
+// }
 
 /// Build the ffprobe configuration.
-pub struct ConfigBuilder {
-    config: Config,
-}
+// pub struct ConfigBuilder {
+//     config: Config,
+// }
 
-impl ConfigBuilder {
-    pub fn new() -> Self {
-        Self {
-            config: Config {
-                count_frames: false,
-            },
-        }
-    }
+// impl ConfigBuilder {
+//     pub fn new() -> Self {
+//         Self {
+//             config: Config {
+//                 count_frames: false,
+//             },
+//         }
+//     }
 
-    /// Enable the -count_frames setting.
-    /// Will fully decode the file and count the frames.
-    /// Frame count will be available in [`Stream::nb_read_frames`].
-    pub fn count_frames(mut self, count_frames: bool) -> Self {
-        self.config.count_frames = count_frames;
-        self
-    }
+//     /// Enable the -count_frames setting.
+//     /// Will fully decode the file and count the frames.
+//     /// Frame count will be available in [`Stream::nb_read_frames`].
+//     pub fn count_frames(mut self, count_frames: bool) -> Self {
+//         self.config.count_frames = count_frames;
+//         self
+//     }
 
-    /// Finalize the builder into a [`Config`].
-    pub fn build(self) -> Config {
-        self.config
-    }
+//     /// Finalize the builder into a [`Config`].
+//     pub fn build(self) -> Config {
+//         self.config
+//     }
 
-    /// Run ffprobe with the config produced by this builder.
-    pub fn run(self, path: impl AsRef<std::path::Path>) -> Result<FfProbe, FfProbeError> {
-        ffprobe_config(self.config, path)
-    }
-}
+//     /// Run ffprobe with the config produced by this builder.
+//     pub fn run(self, path: impl AsRef<std::path::Path>) -> Result<FfProbe, FfProbeError> {
+//         ffprobe(self.config, path)
+//     }
+// }
 
-impl Default for ConfigBuilder {
-    fn default() -> Self {
-        Self::new()
-    }
-}
+// impl Default for ConfigBuilder {
+//     fn default() -> Self {
+//         Self::new()
+//     }
+// }
 
 #[derive(Debug)]
 #[non_exhaustive]
